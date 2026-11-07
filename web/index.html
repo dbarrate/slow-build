@@ -138,6 +138,22 @@ textarea{width:100%;min-height:130px;font:16px/1.4 var(--f-body);background:var(
   padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .tab{flex:1;min-height:50px;border:0;border-radius:8px;background:transparent;color:var(--ink2);font:600 14px/1.1 var(--f-body);letter-spacing:.04em;cursor:pointer}
 .tab.on{background:var(--soft);color:var(--accent)}
+details.how{border-top:1px solid var(--line);padding:2px 0}
+details.how summary,details.lift summary{cursor:pointer;list-style:none}
+details.how summary::-webkit-details-marker,details.lift summary::-webkit-details-marker{display:none}
+details.how summary{font:600 15px var(--f-body);padding:11px 0;display:flex;justify-content:space-between;align-items:center;min-height:44px}
+details.how summary::after,details.lift summary::after{content:"+";font:600 22px/1 var(--f-body);color:var(--ink2);margin-left:10px}
+details.how[open] summary::after,details.lift[open] summary::after{content:"−"}
+details.how:last-of-type{border-bottom:1px solid var(--line)}
+.hl{margin:0 0 10px;padding-left:22px}
+.hl li{padding:3px 0}
+details.lift{border-top:1px solid var(--line);padding:2px 0 10px}
+details.lift:first-child{border-top:0}
+details.lift summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;min-height:56px}
+details.lift summary::after{margin-left:0}
+.lname{display:block;min-width:0;flex:1}
+.lsub{display:block;font-size:13px;color:var(--ink2);margin-top:2px}
+.lcur{font-size:24px;font-weight:600;white-space:nowrap}
 @media (prefers-reduced-motion: no-preference){.bar i{transition:width .4s linear}}
 </style>
 </head>
@@ -148,6 +164,7 @@ textarea{width:100%;min-height:130px;font:16px/1.4 var(--f-body);background:var(
 </div>
 <nav id="tabs" aria-label="Sections">
   <button class="tab on" data-act="tab" data-v="today">Today</button>
+  <button class="tab" data-act="tab" data-v="lifts">Lifts</button>
   <button class="tab" data-act="tab" data-v="progress">Progress</button>
   <button class="tab" data-act="tab" data-v="gym">My gym</button>
 </nav>
@@ -167,45 +184,190 @@ var CARDIO=[null,
  {j:180,w:60,r:6},{j:240,w:60,r:5},{j:300,w:60,r:5},{j:480,w:120,r:3},{j:600,w:90,r:3},{j:900,w:60,r:2},{j:1200,w:0,r:1}];
 var MAXC=CARDIO.length-1;
 
-var PLAN={
-A:[
- {id:'legs',title:'Legs',kind:'load',inc:[10,5],rest:75,opts:[
-  {n:'Leg press machine',cues:['Set the seat so your knees bend to about 90°.','Feet shoulder-width on the plate. Push through your heels.','Stop just short of locking your knees.']},
-  {n:'Sit-to-stand from a bench',bw:true,cues:['Sit on the front edge of a bench, feet flat.','Stand up without pushing off your hands.','Lower yourself for a slow count of three.']},
-  {n:'Goblet squat to a bench',cues:['Hold one dumbbell against your chest.','Sit back until you touch the bench. Keep your chest up.','Stand tall and squeeze your glutes.']}]},
- {id:'push',title:'Push',kind:'load',inc:[5,2.5],rest:75,opts:[
-  {n:'Chest press machine',cues:['Adjust the seat so the handles line up with mid-chest.','Press out smoothly, then return slowly.','Keep your shoulders down and back against the pad.']},
-  {n:'Incline push-up (hands on a bench)',bw:true,cues:['Hands on a bench, a little wider than your shoulders.','Body in one straight line from head to heels.','Lower your chest to the bench, then press away.']},
-  {n:'Dumbbell bench press',cues:['Lie back with a dumbbell in each hand over your chest.','Lower until your elbows are just below the bench.','Press up without letting the dumbbells drift apart.']}]},
- {id:'row',title:'Pull',kind:'load',inc:[5,2.5],rest:75,opts:[
-  {n:'Seated row machine',cues:['Chest against the pad, arms reaching forward.','Pull the handles to your ribs and squeeze your shoulder blades.','Return slowly. Do not rock your back.']},
-  {n:'One-arm dumbbell row (hand and knee on a bench)',cues:['One hand and the same-side knee on the bench, back flat.','Pull the dumbbell toward your hip.','Lower it slowly. Do all reps, then switch sides.']}]},
- {id:'plank',title:'Core',kind:'time',rest:45,opts:[
-  {n:'Plank on your knees',cues:['Forearms on the floor, elbows under your shoulders.','Knees down, straight line from knees to head.','Breathe normally. Stop when your hips sag.']},
-  {n:'Full plank',cues:['Forearms on the floor, toes down.','Straight line from head to heels.','Breathe normally. Stop when your hips sag.']}]}
-],
-B:[
- {id:'pulldown',title:'Pull',kind:'load',inc:[5,2.5],rest:75,opts:[
-  {n:'Lat pulldown machine',cues:['Grip a little wider than your shoulders, thighs snug under the pad.','Pull the bar to your upper chest, elbows down.','Let it rise slowly until your arms are straight.']},
-  {n:'Assisted pull-up machine (lots of assist)',cues:['Set a heavy assist weight. Less assist later means harder.','Pull your chest toward the bar.','Lower slowly.']}]},
- {id:'hinge',title:'Hips',kind:'load',inc:[5,2.5],rest:75,opts:[
-  {n:'Glute bridge (on the floor)',bw:true,cues:['Lie on your back, knees bent, feet flat.','Push through your heels and lift your hips.','Squeeze your glutes at the top, then lower slowly.']},
-  {n:'Dumbbell Romanian deadlift',cues:['Dumbbells in front of your thighs, soft knees.','Push your hips back and slide the weights down your legs.','Stop when you feel a stretch behind your thighs. Stand tall.']},
-  {n:'Seated leg curl machine',cues:['Pad sits just above your heels.','Curl your heels toward you.','Return slowly without letting the weight slam.']}]},
- {id:'press',title:'Shoulders',kind:'load',inc:[5,2.5],rest:75,opts:[
-  {n:'Seated dumbbell shoulder press',cues:['Back supported, a dumbbell at each shoulder.','Press up until your arms are straight.','Lower slowly to ear level.']},
-  {n:'Shoulder press machine',cues:['Seat set so the handles start at shoulder height.','Press up without shrugging.','Return slowly.']}]},
- {id:'bird',title:'Core',kind:'reps',rest:45,opts:[
-  {n:'Bird dog (reps each side)',cues:['On hands and knees, back flat.','Reach one arm and the opposite leg out straight.','Pause one second, return, then switch sides. One rep = both sides.']},
-  {n:'Dead bug (reps each side)',cues:['On your back, arms up, knees bent over your hips.','Lower one arm and the opposite leg toward the floor.','Keep your lower back pressed down. One rep = both sides.']}]}
-]};
+/* One exercise version. m = muscles, setup / move / avoid = short steps, feel = where you should feel it. */
+function O(n,m,setup,move,avoid,feel,bw){return {n:n,m:m,setup:setup,move:move,avoid:avoid,feel:feel,bw:!!bw};}
+var SLOTS={
+ legs:{id:'legs',title:'Thighs',kind:'load',inc:[10,5],rest:75,opts:[
+  O("Leg press machine","Fronts of the thighs, glutes",
+   ["Sit with your back flat against the pad. Adjust the seat so your knees bend to about 90° at the bottom.","Put your feet shoulder-width apart in the middle of the plate.","Start light. Set the safety stops if the machine has them."],
+   ["Push the plate away by pressing through your heels.","Stop just before your knees lock straight.","Bend your knees slowly, about 3 seconds, back to the start."],
+   ["Knees caving inward","Hips or lower back lifting off the pad","Locking your knees hard at the top"],
+   "Fronts of your thighs and your glutes."),
+  O("Sit-to-stand from a bench","Fronts of the thighs, glutes",
+   ["Use a sturdy bench or chair at about knee height.","Sit near the front edge with your feet flat, shoulder-width apart.","Cross your arms over your chest."],
+   ["Lean forward slightly and stand up using your legs only.","Stand fully tall and squeeze your glutes.","Sit back down slowly for a count of three."],
+   ["Pushing off with your hands","Dropping onto the seat","Knees caving inward"],
+   "Thighs and glutes. Too easy? Hold a dumbbell against your chest.",true),
+  O("Goblet squat to a bench","Fronts of the thighs, glutes",
+   ["Put a bench behind you.","Hold one dumbbell upright against your chest with both hands.","Feet shoulder-width apart, toes turned out a little."],
+   ["Push your hips back and bend your knees until you lightly touch the bench.","Keep your chest up and your elbows inside your knees.","Press through your whole foot to stand tall."],
+   ["Rounding your back","Heels lifting off the floor","Bouncing off the bench"],
+   "Thighs and glutes.")]},
+ hams:{id:'hams',title:'Hamstrings & glutes',kind:'load',inc:[5,2.5],rest:75,opts:[
+  O("Seated leg curl machine","Backs of the thighs",
+   ["Sit with your back against the pad. Line your knees up with the machine's pivot point.","Set the lower pad just above your heels.","Hold the side handles."],
+   ["Curl your heels down and back as far as is comfortable.","Pause for one second.","Let the weight rise slowly over 3 seconds."],
+   ["Jerking the weight","Lifting your hips off the seat","Letting the weight stack slam"],
+   "Backs of your thighs."),
+  O("Glute bridge on the floor","Glutes, backs of the thighs",
+   ["Lie on your back with your knees bent and feet flat, hip-width apart.","Arms by your sides, palms down.","Heels about a hand's length from your bum."],
+   ["Push through your heels and lift your hips until you form a straight line from shoulders to knees.","Squeeze your glutes for one second at the top.","Lower slowly over 3 seconds."],
+   ["Arching your lower back at the top","Pushing up onto your toes","Letting your knees fall apart"],
+   "Glutes and backs of the thighs. Too easy? Rest a dumbbell across your hips.",true),
+  O("Dumbbell Romanian deadlift","Backs of the thighs, glutes, lower back",
+   ["Stand with feet hip-width apart, a dumbbell in each hand in front of your thighs.","Keep a soft bend in your knees and hold it there.","Stand tall with your shoulders back."],
+   ["Push your hips straight back, sliding the dumbbells down your thighs.","Stop when you feel a stretch behind your thighs, around mid-shin.","Squeeze your glutes to stand back up tall."],
+   ["Rounding your back","Letting the dumbbells drift away from your legs","Squatting down instead of pushing your hips back"],
+   "A stretch behind your thighs, then your glutes working on the way up.")]},
+ calves:{id:'calves',title:'Calves',kind:'load',inc:[5,2.5],rest:60,opts:[
+  O("Standing calf raise, bodyweight","Calves",
+   ["Stand next to a wall or rail for balance, feet hip-width apart.","For more range, stand on the edge of a step with your heels hanging off."],
+   ["Rise up onto your toes as high as you can.","Pause for one second at the top.","Lower slowly over 3 seconds."],
+   ["Bouncing","Rolling onto the outsides of your feet","Bending your knees"],
+   "Your calf muscles. Too easy? Hold a dumbbell in each hand.",true),
+  O("Seated calf raise machine","Calves",
+   ["Sit with the pad resting on your thighs just above your knees.","Put the balls of your feet on the platform, heels hanging off.","Release the safety bar if there is one."],
+   ["Press up onto your toes as high as you can.","Pause for one second at the top.","Lower slowly until you feel a stretch in your calves."],
+   ["Bouncing","Short, half-range reps","Going heavy too fast"],
+   "Your calf muscles."),
+  O("Dumbbell calf raise","Calves",
+   ["Hold a dumbbell in each hand at your sides.","Stand on the floor or on the edge of a step, next to a wall for balance."],
+   ["Rise up onto your toes as high as you can.","Pause for one second at the top.","Lower slowly over 3 seconds."],
+   ["Bouncing","Leaning forward","Rolling your ankles outward"],
+   "Your calf muscles.")]},
+ plank:{id:'plank',title:'Core',kind:'time',rest:45,opts:[
+  O("Plank on your knees","Abs, core, shoulders",
+   ["Kneel on a mat with your forearms on the floor, elbows under your shoulders.","Walk your knees back until you form a straight line from knees to head."],
+   ["Squeeze your abs and glutes and hold still.","Breathe slowly in and out. Do not hold your breath.","End the hold when your hips sag or your back arches."],
+   ["Hips sagging toward the floor","Hips piking up","Looking forward. Keep your neck long, eyes on the floor"],
+   "Your abs, and a little in your shoulders."),
+  O("Full plank","Abs, core, shoulders",
+   ["Forearms on the floor, elbows under your shoulders, toes tucked.","Make a straight line from your head to your heels."],
+   ["Squeeze your abs and glutes and hold still.","Breathe slowly in and out. Do not hold your breath.","End the hold when your hips sag or your back arches."],
+   ["Hips sagging toward the floor","Hips piking up","Holding your breath"],
+   "Your abs and shoulders.")]},
+ push:{id:'push',title:'Chest',kind:'load',inc:[5,2.5],rest:75,opts:[
+  O("Chest press machine","Chest, fronts of the shoulders, triceps",
+   ["Adjust the seat so the handles are level with the middle of your chest.","Sit with your back flat against the pad and your feet flat on the floor.","Start with a light weight."],
+   ["Press the handles straight out until your arms are almost straight.","Pause for one second.","Bring them back slowly over 3 seconds until you feel a gentle stretch across your chest."],
+   ["Shrugging your shoulders up","Locking your elbows hard","Lifting your back off the pad"],
+   "Your chest and the fronts of your shoulders."),
+  O("Incline push-up, hands on a bench","Chest, shoulders, triceps",
+   ["Put your hands on a sturdy bench or rail, a little wider than your shoulders. A higher surface is easier.","Walk your feet back until your body is one straight line.","Tighten your abs and glutes."],
+   ["Bend your elbows and lower your chest toward the bench.","Keep your elbows at about 45 degrees from your body, not flared out.","Press away until your arms are straight."],
+   ["Hips sagging","Elbows flaring wide","Stopping short of a full range"],
+   "Chest and the backs of your arms. Too easy? Use a lower surface.",true),
+  O("Dumbbell bench press","Chest, shoulders, triceps",
+   ["Sit on the end of a flat bench with a dumbbell on each thigh.","Lie back, bringing the dumbbells to either side of your chest.","Feet flat on the floor."],
+   ["Press the dumbbells up until your arms are almost straight.","Lower them slowly over 3 seconds until your upper arms are level with the bench.","Keep your wrists straight."],
+   ["Letting the dumbbells crash together","Arching your lower back off the bench","Going too heavy. Ask someone to spot you if unsure"],
+   "Your chest.")]},
+ press:{id:'press',title:'Shoulders',kind:'load',inc:[5,2.5],rest:75,opts:[
+  O("Seated dumbbell shoulder press","Shoulders, triceps",
+   ["Sit on a bench with the back support set nearly upright.","Hold a dumbbell at each shoulder, palms facing forward.","Feet flat, abs lightly braced."],
+   ["Press the dumbbells straight up until your arms are almost straight.","Lower slowly back to ear level.","Keep your ribs down. Do not arch your back."],
+   ["Arching your lower back","Shrugging up to your ears","Letting the dumbbells drift forward"],
+   "The tops of your shoulders."),
+  O("Shoulder press machine","Shoulders, triceps",
+   ["Adjust the seat so the handles start at shoulder height.","Sit with your back flat against the pad.","Start with a light weight."],
+   ["Press up until your arms are almost straight.","Pause for one second.","Lower slowly over 3 seconds."],
+   ["Shrugging","Arching your back","Dropping the weight fast"],
+   "The tops of your shoulders."),
+  O("Dumbbell lateral raise, very light","Sides of the shoulders",
+   ["Stand tall holding a light dumbbell in each hand at your sides.","Keep a slight bend in your elbows."],
+   ["Raise your arms out to the sides up to shoulder height.","Pause briefly.","Lower slowly over 3 seconds."],
+   ["Swinging your body","Lifting above shoulder height","Using weights that are too heavy. Start very light"],
+   "The sides of your shoulders. Light weights are normal here.")]},
+ tri:{id:'tri',title:'Triceps',kind:'load',inc:[5,2.5],rest:60,opts:[
+  O("Cable triceps pushdown","Backs of the upper arms",
+   ["Attach a straight bar or rope to the high pulley.","Stand close to the machine, elbows tucked at your sides, hands on the bar."],
+   ["Push the bar down until your arms are straight.","Pause for one second.","Let it rise slowly until your forearms are just past level."],
+   ["Elbows drifting forward or flaring out","Leaning over the bar","Using your body weight to push"],
+   "The backs of your upper arms."),
+  O("Seated dumbbell overhead triceps extension","Backs of the upper arms",
+   ["Sit on a bench with back support.","Hold one dumbbell with both hands, resting it overhead with your arms straight."],
+   ["Bend your elbows to lower the dumbbell behind your head.","Keep your upper arms close to your ears.","Straighten your arms to lift it back up."],
+   ["Elbows flaring out","Arching your back","Going too heavy overhead"],
+   "The backs of your upper arms.")]},
+ deadbug:{id:'deadbug',title:'Core',kind:'reps',rest:45,opts:[
+  O("Dead bug, reps each side","Deep abs",
+   ["Lie on your back with your arms straight up toward the ceiling.","Lift your knees so they are bent at 90 degrees over your hips.","Press your lower back gently into the floor."],
+   ["Slowly lower your right arm behind you and your left leg out toward the floor.","Keep your lower back pressed down the whole time.","Come back, then switch sides. One rep is both sides."],
+   ["Lower back arching off the floor","Moving fast","Holding your breath"],
+   "Deep in your abs."),
+  O("Bird dog, reps each side","Core, lower back, glutes",
+   ["Start on hands and knees: hands under shoulders, knees under hips.","Keep your back flat and your neck long, eyes on the floor."],
+   ["Reach your right arm forward and your left leg back until both are in line with your body.","Hold for one second without twisting your hips.","Come back and switch sides. One rep is both sides."],
+   ["Hips rotating or rising","Arching your lower back","Rushing"],
+   "Core and lower back.")]},
+ pulldown:{id:'pulldown',title:'Back, pulling down',kind:'load',inc:[5,2.5],rest:75,opts:[
+  O("Lat pulldown machine","Sides of the back, biceps",
+   ["Adjust the knee pad so it holds your thighs snugly.","Grip the bar a little wider than your shoulders, palms facing away.","Sit tall and lean back very slightly."],
+   ["Pull the bar down to your upper chest, driving your elbows down and back.","Squeeze your shoulder blades together for one second.","Let the bar rise slowly until your arms are straight."],
+   ["Pulling the bar behind your neck","Leaning far back and swinging","Letting the weight yank your arms up"],
+   "The sides of your back and your arms."),
+  O("Close-grip cable pulldown","Sides of the back, biceps",
+   ["Attach a close-grip handle to the high pulley.","Sit with your thighs under the pad, back tall, handle in both hands."],
+   ["Pull the handle down to your upper chest, elbows going down and back.","Squeeze your shoulder blades together for one second.","Let it rise slowly until your arms are straight."],
+   ["Leaning far back and swinging","Shrugging your shoulders","Letting the weight yank your arms up"],
+   "The sides of your back and your arms.")]},
+ row:{id:'row',title:'Back, pulling in',kind:'load',inc:[5,2.5],rest:75,opts:[
+  O("Seated row machine","Middle of the back, biceps",
+   ["Adjust the chest pad so you can reach the handles with straight arms without leaning forward.","Sit tall with your feet braced."],
+   ["Pull the handles toward your ribs, leading with your elbows.","Squeeze your shoulder blades together for one second.","Return slowly until your arms are straight."],
+   ["Rocking your whole body","Shrugging","Letting your shoulders round forward at the start"],
+   "The middle of your back."),
+  O("One-arm dumbbell row, hand and knee on a bench","Middle of the back, biceps",
+   ["Put your left hand and left knee on a bench with your back flat.","Hold a dumbbell in your right hand, arm hanging straight down."],
+   ["Pull the dumbbell up toward your hip, elbow close to your side.","Squeeze your back at the top.","Lower slowly. Finish the reps, then switch sides. One set is both sides."],
+   ["Twisting your torso","Rounding your back","Swinging the weight"],
+   "The middle of your back and the back of your shoulder.")]},
+ curl:{id:'curl',title:'Biceps',kind:'load',inc:[5,2.5],rest:60,opts:[
+  O("Dumbbell biceps curl","Fronts of the upper arms",
+   ["Stand tall or sit, a dumbbell in each hand, arms hanging, palms forward.","Tuck your elbows at your sides."],
+   ["Curl the dumbbells up toward your shoulders without moving your elbows.","Squeeze for one second at the top.","Lower slowly over 3 seconds."],
+   ["Swinging your body","Elbows drifting forward","Dropping the weight quickly"],
+   "The fronts of your upper arms."),
+  O("Cable curl with a straight bar","Fronts of the upper arms",
+   ["Attach a straight bar to the low pulley.","Stand facing the machine, hold the bar palms up, elbows at your sides."],
+   ["Curl the bar up toward your shoulders without moving your elbows.","Squeeze for one second at the top.","Lower slowly over 3 seconds."],
+   ["Swinging your body","Elbows drifting forward","Letting the bar drop"],
+   "The fronts of your upper arms."),
+  O("Biceps curl machine","Fronts of the upper arms",
+   ["Adjust the seat so your upper arms rest flat on the pad.","Hold the handles with your palms up."],
+   ["Curl the handles toward your shoulders.","Squeeze for one second at the top.","Lower slowly over 3 seconds."],
+   ["Lifting your elbows off the pad","Jerking the weight","Dropping the weight fast"],
+   "The fronts of your upper arms.")]},
+ bird:{id:'bird',title:'Core and lower back',kind:'reps',rest:45,opts:[
+  O("Bird dog, reps each side","Core, lower back, glutes",
+   ["Start on hands and knees: hands under shoulders, knees under hips.","Keep your back flat and your neck long, eyes on the floor."],
+   ["Reach your right arm forward and your left leg back until both are in line with your body.","Hold for one second without twisting your hips.","Come back and switch sides. One rep is both sides."],
+   ["Hips rotating or rising","Arching your lower back","Rushing"],
+   "Core and lower back."),
+  O("Dead bug, reps each side","Deep abs",
+   ["Lie on your back with your arms straight up toward the ceiling.","Lift your knees so they are bent at 90 degrees over your hips.","Press your lower back gently into the floor."],
+   ["Slowly lower your right arm behind you and your left leg out toward the floor.","Keep your lower back pressed down the whole time.","Come back, then switch sides. One rep is both sides."],
+   ["Lower back arching off the floor","Moving fast","Holding your breath"],
+   "Deep in your abs.")]}
+};
+var DAYS={
+ L:{name:"Legs & core",focus:"Thighs, glutes, calves and abs",slots:['legs','hams','calves','plank']},
+ P:{name:"Chest, shoulders & arms",focus:"Chest, shoulders, triceps and abs",slots:['push','press','tri','deadbug']},
+ B:{name:"Back & biceps",focus:"Upper back, biceps and lower back",slots:['pulldown','row','curl','bird']}
+};
+function daySlots(k){return DAYS[k].slots.map(function(id){return SLOTS[id];});}
+function allSlots(){var a=[];['L','P','B'].forEach(function(k){a=a.concat(daySlots(k));});return a;}
+function slotById(id){return SLOTS[id];}
+
 
 /* ---------- state ---------- */
-function fresh(){return {v:1,unit:'lb',done:0,sessions:[],ex:{},opt:{},cardio:{level:1,ok:0,ready:false,lastUp:0},gym:'',wip:null,t:0};}
+function fresh(){return {v:2,unit:'lb',done:0,sessions:[],ex:{},opt:{},hist:{},seen:{},cardio:{level:1,ok:0,ready:false,lastUp:0},gym:'',wip:null,t:0};}
+// Version 1 used a different exercise list. Keep the workout count, cardio level and settings; restart the lifts.
+function migrate(o){if(o&&o.v===1){o.v=2;o.ex={};o.opt={};o.wip=null;o.hist={};o.seen={};}return o;}
 var S=fresh(), W=null, R=null, view='today', curVal=null, confirmReset=false, confirmDiscard=false, LAST=null;
 var dbDoc=null, dbState='local', unsub=null;
 
-function loadLocal(){try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o&&o.v===1)return o;}}catch(e){}return null;}
+function loadLocal(){try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o&&(o.v===1||o.v===2))return migrate(o);}}catch(e){}return null;}
 var saveTimer=null, writing=false, dirty=false, fails=0;
 function save(){
   S.t=Date.now();
@@ -221,10 +383,8 @@ function flush(){
 
 /* ---------- helpers ---------- */
 function weekNo(){return Math.floor(S.done/3)+1;}
-function dayKey(){return (weekNo()%2===1?['A','B','A']:['B','A','B'])[S.done%3];}
-function dayTitle(k){return 'Full body '+k;}
-function allSlots(){return PLAN.A.concat(PLAN.B);}
-function slotById(id){return allSlots().filter(function(s){return s.id===id;})[0];}
+function dayKey(){return ['L','P','B'][S.done%3];}
+function dayTitle(k){return DAYS[k]?DAYS[k].name:'Full body '+k;}
 function incOf(slot){return S.unit==='lb'?slot.inc[0]:slot.inc[1];}
 function r2(n){return Math.round(n*100)/100;}
 function num(n){return String(r2(n));}
@@ -263,7 +423,7 @@ function commit(p,wk){
 }
 function startSession(){
   var wk=weekNo(),dk=dayKey();
-  var plan=PLAN[dk].map(function(s){return slotPlan(s,wk);});
+  var plan=daySlots(dk).map(function(s){return slotPlan(s,wk);});
   plan.forEach(function(p){commit(p,wk);});
   var C=S.cardio,cBump=false;
   if(C.ready&&wk>Math.max(C.lastUp,1)&&wk%4!==0&&C.level<MAXC){C.level++;C.ok=0;C.ready=false;C.lastUp=wk;cBump=true;}
@@ -280,6 +440,10 @@ function finish(){
     var vals=lg.sets.map(function(s){return s.v;}),complete=vals.length>=p.sets,avg=vals.reduce(function(a,b){return a+b;},0)/vals.length;
     var last=lg.sets[lg.sets.length-1];
     rec.ex.push({n:o.n,v:vals,ld:slot.kind==='load'?last.ld:null});
+    var hl=S.hist[p.key]||(S.hist[p.key]=[]);
+    hl.push({w:wk,d:rec.date,ld:slot.kind==='load'?last.ld:null,v:vals});
+    if(hl.length>40)S.hist[p.key]=hl.slice(-40);
+    S.seen[p.key]=1;
     if(slot.kind==='load'){
       var allTop=complete&&vals.every(function(v){return v>=12;});
       st.ready=allTop&&rating!=='hard';
@@ -317,13 +481,13 @@ function planLine(p){
 }
 function todayView(){
   var wk=weekNo(),dk=dayKey(),di=S.done%3,deload=wk%4===0;
-  var plan=(W?W.plan:PLAN[dk].map(function(s){return slotPlan(s,wk);}));
+  var plan=(W?W.plan:daySlots(dk).map(function(s){return slotPlan(s,wk);}));
   var lvl=W?W.cLevel:S.cardio.level,cUp=W?W.cBump:false;
   if(!W&&S.cardio.ready&&wk>Math.max(S.cardio.lastUp,1)&&!deload&&lvl<MAXC){lvl++;cUp=true;}
   var mins=5+plan.reduce(function(a,p){return a+p.sets*(slotById(p.sid).kind==='load'?2.5:1.5);},0)+cMinutes(lvl)+5;
   mins=Math.round(mins/5)*5;
   var dots='';for(var i=0;i<3;i++)dots+='<span class="'+(i<di?'d':i===di?'c':'')+'"></span>';
-  var h='<div class="eyebrow">Day '+(di+1)+' of 3</div><h1>'+dayTitle(W?W.day:dk)+'</h1><div class="days">'+dots+'</div>';
+  var h='<div class="eyebrow">Day '+(di+1)+' of 3</div><h1>'+dayTitle(W?W.day:dk)+'</h1><p class="lead" style="margin-bottom:8px">'+esc(DAYS[W?W.day:dk].focus)+'</p><div class="days">'+dots+'</div>';
   if(deload)h+='<div class="note">Easy week. Fewer sets and no weight increases, so your body can catch up.</div>';
   h+='<div class="card"><ul class="plan"><li><span class="l">Warm up, easy walk</span><span class="r">5 min</span></li>';
   plan.forEach(function(p){var slot=slotById(p.sid),o=slot.opts[p.oi];
@@ -337,6 +501,15 @@ function todayView(){
   h+='<h2>How this works</h2><p class="muted">Pick weights that feel like a 6 out of 10 and leave a few reps in the tank. When you hit 12 reps on every set, the weight goes up the next week. Cardio moves up only after sessions that felt manageable. If something hurts (sharp pain, not effort), skip it. Check with a doctor first if you have any health concerns.</p>';
   return h;
 }
+function how(title,list,ordered,open){
+  var t=ordered?'ol':'ul';
+  return '<details class="how"'+open+'><summary>'+title+'</summary><'+t+' class="hl">'+list.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</'+t+'></details>';
+}
+function histText(slot,h){
+  if(slot.kind==='load')return (h.ld>0?num(h.ld)+' '+S.unit:'bodyweight')+' × '+h.v.join(', ');
+  if(slot.kind==='reps')return h.v.join(', ')+' reps each side';
+  return h.v.join(', ')+' seconds';
+}
 function curDefault(i){
   var p=W.plan[i],slot=slotById(p.sid),lg=W.logs[p.key];
   if(slot.kind==='load')return lg&&lg.sets.length?lg.sets[lg.sets.length-1].v:10;
@@ -346,7 +519,12 @@ function exView(i){
   var p=W.plan[i],slot=slotById(p.sid),o=slot.opts[p.oi],lg=W.logs[p.key]||{sets:[]},nDone=lg.sets.length;
   var h='<div class="eyebrow">Exercise '+(i+1)+' of 4 · '+slot.title+'</div><h1>'+esc(o.n)+'</h1>';
   if(nDone===0&&slot.opts.length>1)h+='<button class="link" data-act="swap" data-i="'+i+'">Swap for a different version</button>';
-  h+='<ul class="cues">'+o.cues.map(function(c){return '<li>'+esc(c)+'</li>';}).join('')+'</ul>';
+  var op=S.seen[p.key]?'':' open';
+  h+='<p class="muted" style="margin:2px 0 6px">Works: '+esc(o.m)+'</p>';
+  h+=how('Set up',o.setup,true,op)+how('Do the rep',o.move,true,op)+how('Avoid',o.avoid,false,op);
+  h+='<p class="muted" style="margin-top:8px">You should feel it in: '+esc(o.feel)+'</p>';
+  var hs=S.hist[p.key]||[];
+  if(hs.length)h+='<div class="note">Last time: '+esc(histText(slot,hs[hs.length-1]))+'</div>';
   if(p.bump)h+='<div class="note up">Up this week: '+esc(p.bump)+'</div>';
   if(p.hint)h+='<div class="note">'+esc(p.hint)+'</div>';
   var tl=slot.kind==='load'?(p.sets+' sets of 8–12 reps'):slot.kind==='reps'?(p.sets+' sets of '+p.target+' reps each side'):(p.sets+' holds of '+p.target+' seconds');
@@ -449,12 +627,52 @@ function doneView(){
   h+='<div class="stack"><button class="btn primary" data-act="home">Back to Today</button></div>';
   return h;
 }
-function slotStatus(slot){
-  var oi=S.opt[slot.id]||0,o=slot.opts[oi],s=S.ex[slot.id+':'+oi]||{};
-  var r;
-  if(slot.kind==='load')r=(s.load==null?(o.bw?'bodyweight':'not set yet'):(s.load>0?num(s.load)+' '+S.unit:'bodyweight'));
-  else if(slot.kind==='reps')r=(s.target||6)+' reps each side';else r=(s.target||15)+' s hold';
-  return '<li><span class="l">'+esc(o.n)+(s.ready?'<span class="tags">ready to go up</span>':'')+'</span><span class="r">'+r+'</span></li>';
+function spark(vals,weeks){
+  var W2=300,H2=84,pl=38,pr=10,pt=10,pb=18,n=vals.length;
+  var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals),slo=lo,shi=hi;
+  if(lo===hi){slo=lo-1;shi=hi+1;}
+  function X(i){return n===1?(pl+(W2-pl-pr)/2):pl+(W2-pl-pr)*i/(n-1);}
+  function Y(v){return pt+(H2-pt-pb)*(1-(v-slo)/(shi-slo));}
+  var pts=vals.map(function(v,i){return X(i).toFixed(1)+','+Y(v).toFixed(1);}).join(' ');
+  var g='<svg viewBox="0 0 '+W2+' '+H2+'" width="100%" role="img" aria-label="Progress over time" style="display:block">';
+  g+='<line x1="'+pl+'" y1="'+Y(hi).toFixed(1)+'" x2="'+(W2-pr)+'" y2="'+Y(hi).toFixed(1)+'" stroke="var(--line)" stroke-width="1"/>';
+  g+='<text x="'+(pl-6)+'" y="'+(Y(hi)+3.5).toFixed(1)+'" text-anchor="end" font-size="10" fill="var(--ink2)">'+num(hi)+'</text>';
+  if(lo!==hi){
+    g+='<line x1="'+pl+'" y1="'+Y(lo).toFixed(1)+'" x2="'+(W2-pr)+'" y2="'+Y(lo).toFixed(1)+'" stroke="var(--line)" stroke-width="1"/>';
+    g+='<text x="'+(pl-6)+'" y="'+(Y(lo)+3.5).toFixed(1)+'" text-anchor="end" font-size="10" fill="var(--ink2)">'+num(lo)+'</text>';
+  }
+  if(n>1)g+='<polyline points="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  vals.forEach(function(v,i){g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="'+(i===n-1?4.5:3)+'" fill="var(--accent)"/>';});
+  g+='<text x="'+pl+'" y="'+(H2-3)+'" font-size="10" fill="var(--ink2)">wk '+weeks[0]+'</text>';
+  if(n>1)g+='<text x="'+(W2-pr)+'" y="'+(H2-3)+'" text-anchor="end" font-size="10" fill="var(--ink2)">wk '+weeks[n-1]+'</text>';
+  return g+'</svg>';
+}
+function liftCard(slot){
+  var oi=S.opt[slot.id]||0,o=slot.opts[oi],key=slot.id+':'+oi,s=S.ex[key]||{},hs=S.hist[key]||[];
+  var cur;
+  if(slot.kind==='load')cur=(s.load==null?(o.bw?'Bodyweight':'Not set'):(s.load>0?num(s.load)+' '+S.unit:'Bodyweight'));
+  else if(slot.kind==='reps')cur=(s.target||6)+' reps';else cur=(s.target||15)+' s';
+  var series=hs.map(function(x){return slot.kind==='load'?(x.ld||0):Math.max.apply(null,x.v);});
+  var sub='';
+  if(slot.kind==='load'&&hs.length>=2){var d=r2(series[series.length-1]-series[0]);sub=(d>0?'+':'')+num(d)+' '+S.unit+' since week '+hs[0].w;}
+  else if(!hs.length)sub='No sessions yet';
+  else if(hs.length===1)sub='1 session logged';
+  else sub=hs.length+' sessions logged';
+  var h='<details class="lift"><summary><span class="lname">'+esc(o.n)+(s.ready?'<span class="tags">ready to go up</span>':'')+'<span class="lsub">'+esc(sub)+'</span></span><span class="num lcur">'+esc(cur)+'</span></summary>';
+  if(hs.length){
+    h+=spark(series,hs.map(function(x){return x.w;}));
+    h+='<ul class="plan" style="margin-top:6px">'+hs.slice(-6).reverse().map(function(x){
+      var d=new Date(x.d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      return '<li><span class="l">Week '+x.w+' · '+d+'</span><span class="r">'+esc(histText(slot,x))+'</span></li>';}).join('')+'</ul>';
+  }else h+='<p class="muted" style="margin:8px 0 0">Your weights will show up here after your first workout.</p>';
+  return h+'</details>';
+}
+function liftsView(){
+  var h='<h1>Lifts</h1><p class="lead">Your weight on every exercise, week by week. Tap one to see the chart.</p>';
+  ['L','P','B'].forEach(function(k){
+    h+='<h2>'+esc(DAYS[k].name)+'</h2><div class="card" style="padding:4px 16px">'+daySlots(k).map(liftCard).join('')+'</div>';
+  });
+  return h;
 }
 function progressView(){
   var c=CARDIO[S.cardio.level];
@@ -462,7 +680,6 @@ function progressView(){
   h+='<h2>Cardio ladder</h2><div class="card">'+CARDIO.slice(1).map(function(cc,i){
     var L=i+1,cls=L<S.cardio.level?'past':L===S.cardio.level?'now':'',w=Math.max(4,Math.round(Math.sqrt(cc.j/1200)*100));
     return '<div class="lad '+cls+'"><span class="ln num">'+L+'</span><div class="lb"><i style="width:'+w+'%"></i></div><span class="lt">Jog '+words(cc.j)+(cc.w?' / walk '+words(cc.w):'')+' × '+cc.r+'</span></div>';}).join('')+'</div>';
-  h+='<h2>Strength right now</h2><div class="card"><ul class="plan">'+allSlots().map(slotStatus).join('')+'</ul></div>';
   h+='<h2>Recent workouts</h2>';
   if(!S.sessions.length)h+='<p class="muted">Nothing logged yet. Your first workout will show up here.</p>';
   else h+='<div class="card">'+S.sessions.slice(-10).reverse().map(function(r){
@@ -486,7 +703,7 @@ function render(scroll){
   var a=$('#app'),inW=!!W&&view==='workout';
   if(view==='done'&&LAST)a.innerHTML=doneView();
   else if(inW)a.innerHTML=workoutView();
-  else{if(view==='workout')view='today';a.innerHTML=(view==='progress'?progressView:view==='gym'?gymView:todayView)();}
+  else{if(view==='workout')view='today';a.innerHTML=(view==='progress'?progressView:view==='lifts'?liftsView:view==='gym'?gymView:todayView)();}
   $('#tabs').hidden=inW||view==='done';
   var tabs=document.querySelectorAll('.tab');
   for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('on',tabs[i].dataset.v===view);
@@ -571,6 +788,7 @@ function act(a,d){
     case 'backup':exportData();break;
     case 'unit':{if(W||d.u===S.unit)break;var f=d.u==='kg'?0.45359237:2.2046226,step=d.u==='kg'?2.5:5;
       Object.keys(S.ex).forEach(function(k){var s=S.ex[k];if(s.load>0)s.load=Math.max(step,Math.round(s.load*f/step)*step);});
+      Object.keys(S.hist).forEach(function(k){S.hist[k].forEach(function(x){if(x.ld>0)x.ld=Math.max(step,Math.round(x.ld*f/step)*step);});});
       S.unit=d.u;save();render();break;}
     case 'clm':case 'clp':if(!W){S.cardio.level=Math.max(1,Math.min(MAXC,S.cardio.level+(a==='clp'?1:-1)));S.cardio.ok=0;S.cardio.ready=false;save();render();}break;
     case 'reset':if(confirmReset){var keep=S.gym;S=fresh();S.gym=keep;W=null;R=null;LAST=null;confirmReset=false;view='today';save();}else confirmReset=true;render(true);break;
@@ -603,8 +821,8 @@ function importData(file){
   fr.onload=function(){
     try{
       var o=JSON.parse(fr.result);
-      if(!o||o.v!==1||typeof o.done!=='number')throw new Error('bad');
-      S=Object.assign(fresh(),o);W=S.wip||null;R=null;view='today';save();render(true);
+      if(!o||(o.v!==1&&o.v!==2)||typeof o.done!=='number')throw new Error('bad');
+      o=migrate(o);S=Object.assign(fresh(),o);W=S.wip||null;R=null;view='today';save();render(true);
     }catch(e){alert('That file is not a Slow Build backup.');}
   };
   fr.readAsText(file);
